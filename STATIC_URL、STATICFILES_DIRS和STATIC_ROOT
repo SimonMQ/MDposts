@@ -1,0 +1,54 @@
+首先,我们配置静态文件,要在setting.py里面加入如下几行代码: 
+settings.py
+
+# the settings above
+# STATIC SETTINGS
+STATIC_URL = '/static/'
+# BASE_DIR 是项目的绝对地址
+STATIC_ROOT = os.path.join(BASE_DIR, 'collect_static')
+#以下不是必须的
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'common_static'),
+) 
+
+1.STATIC_ROOT
+STATIC_ROOT 是在部署静态文件时(pyhtonmanage.pycollectstatic)所有的静态文静聚合的目录,STATIC_ROOT要写成绝对地址,
+在这里,比如我的项目mysite是/home/mysite/ ，那么STATIC_ROOT 为 /home/mysite/collect_static/ 
+当部署项目时,在终端输入:
+python manage.py collectstatic
+django会把所有的static文件都复制到STATIC_ROOT文件夹下
+
+2.STATICFILES_DIRS
+STATIC_ROOT 是在部署的时候才发挥作用, 而实际情况下,静态文件的一般安放位置有两种:
+1.一种就是在每个app里面新建一个static文件夹,将静态文件放到里面,在加载静态文件时,比如要在模板中用到静态文件,
+django会自动在每个app里面搜索static文件夹(所以,不要把文件夹的名字写错哦, 否则django就找不到你的文件夹了)
+2.另一种,就是在所有的app文件外面,建立一个公共的文件夹, 因为有些静态文件不是某个app独有的,那么就可以把它放到一个公共文件夹里面,
+方便管理(注意,建立一个公共的静态文件的文件夹只是一种易于管理的做法,但是不是必须的,app是可以跨app应用静态文件的,
+因为最后所有的静态文件都会在STATIC_ROOT里面存在) 。
+那现在的问题是如何让django知道你把一些静态文件放到app以外的公共文件夹中呢,那就需要配置STATICFILES_DIRS了
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'common_static'),
+)
+
+STATICFILES_DIRS告诉django,首先到STATICFILES_DIRS里面寻找静态文件,其次再到各个app的static文件夹里面找
+(注意, django查找静态文件是惰性查找,查找到第一个,就停止查找了)
+
+3.STATIC_URL
+
+那么到此为止,静态文件的机制就可以运作了,但是有一个问题,我能不能通过url直接访问我在项目中的静态文件呢,答案肯定是啦,
+但是,注意,你是在浏览器是访问,你不可能输入你的静态文件的本地绝对地址吧,比如我的一种图片的本地地址为 /home/mysite/common_static/myapp/photo.png 
+那么别人不可能在浏览器上直接输入: 
+http://192.168.1.2:8000/home/mysite/common_static/myapp/photo.png 
+这样子,浏览器会报错, 没有该页面 
+那么django是如何让浏览器也可以访问服务器上的静态文件呢,前面已经说了,直接访问服务器本地的地址是不行的,那就需要一个映射,
+django利用STATIC_URL来让浏览器可以直接访问静态文件,比如:
+
+STATIC_URL = '/static/'
+1
+那么可以在浏览器上输入: 
+http://192.168.1.2:8000/static/common_static/myapp/photo.png 
+那么就相当与访问/home/mysite/common_static/myap/photo.png
+
+所以在浏览器上,利用前缀 STATIC_URL的具体内容,来映射STATIC_ROOT, 
+HTTP://192.168.1.2:8000/static 相当于 本地地址的STATIC_ROOT
